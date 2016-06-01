@@ -1,8 +1,5 @@
 package com.ketecode.ghpaymentsdemo;
 
-import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -11,15 +8,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.GridView;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.mpowerpayments.mpower.MPowerCheckoutInvoice;
 import com.mpowerpayments.mpower.MPowerCheckoutStore;
 import com.mpowerpayments.mpower.MPowerOnsiteInvoice;
 import com.mpowerpayments.mpower.MPowerSetup;
-import com.nhaarman.listviewanimations.appearance.simple.SwingBottomInAnimationAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +29,7 @@ public class MpowerActivity extends AppCompatActivity {
 
     MPowerSetup setup = new MPowerSetup();
     MPowerCheckoutStore store = new MPowerCheckoutStore();
+    String oprToken="";
 
     //This invoice will take you to the Mpower website
     MPowerCheckoutInvoice invoiceCheckout = new MPowerCheckoutInvoice(setup, store);
@@ -40,25 +37,49 @@ public class MpowerActivity extends AppCompatActivity {
     //This invoice will not take you to the MPower website but bill the customer on the app or site.
     MPowerOnsiteInvoice invoiceOnSite = new MPowerOnsiteInvoice (setup, store);
 
+    EditText mpowerUser;
+    EditText mpowerConfirmCode;
+    Button mpowerConfirmBtn;
+    FloatingActionButton fab;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mpower);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        mpowerUser = (EditText) findViewById(R.id.mpower_username_number);
+        mpowerConfirmCode = (EditText) findViewById(R.id.mpower_confirm_code);
+        mpowerConfirmBtn = (Button) findViewById(R.id.mpower_confirm_btn);
+
         mPowerSetupInit();
         mPowerStoreInit();
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Snackbar.make(view, "Buying item using MPower Payments", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
 
-                new PaymentThread().execute();
+                new PaymentThread().execute("check");
             }
         });
+
+        mpowerConfirmBtn.setOnClickListener(new View.OnClickListener(){
+
+            @Override
+            public void onClick(View v) {
+
+                if(!mpowerConfirmCode.getText().toString().isEmpty())
+                    new PaymentThread().execute(mpowerConfirmCode.getText().toString());
+                else
+                    mpowerConfirmCode.setHint("Enter confirmation code here from your email");
+            }
+        });
+
+
 
 /*
 
@@ -136,9 +157,17 @@ public class MpowerActivity extends AppCompatActivity {
 
     }
 
-    private void mPowerPay() {
+    private String mPowerPay() {
         //Setting up the On Site Invoice
-        mPowerOnSiteInvoice("kobbyadmin");
+
+
+        if(mpowerUser.getText().toString() != null){
+            return mPowerOnSiteInvoice(mpowerUser.getText().toString());
+        }
+        else {
+            Toast.makeText(this,"Please input your Mpower username or phone number", Toast.LENGTH_LONG).show();
+            return null;
+        }
 
         /*Adding items to cart and setting total amount
         * Note: You'll have to do the calculations of the items you've added to the cart yourself in the code
@@ -211,7 +240,7 @@ public class MpowerActivity extends AppCompatActivity {
     // Onsite Payment Request Charge requires bother the OPR_Token & Customers Confirmation Token
     private void onsiteRequestCharge(String oprToken, String customerConfirmToken) {
         if (invoiceOnSite.charge(oprToken, customerConfirmToken)) {
-            Log.d("Status" , invoiceOnSite.getStatus());
+            Log.d("Confirm trans Status" , invoiceOnSite.getStatus());
             Log.d("Response Message" , invoiceOnSite.getResponseText());
             Log.d("Receipt URL" , invoiceOnSite.getReceiptUrl());
             Log.d("Customer Name" , (String) invoiceOnSite.getCustomerInfo("name"));
@@ -260,7 +289,7 @@ public class MpowerActivity extends AppCompatActivity {
 
     /**
      * This funciton would confirm the Checkout programatically.
-     * I'm using the variable 'invoiceOnsite' for this method as an example
+     * I'm using the variable 'invoiceCheckout' for this method as an example
      * */
     private boolean confirmCheckout(){
         // Invoice token is returned as a URL query string "token"
@@ -347,17 +376,47 @@ public class MpowerActivity extends AppCompatActivity {
     }
 
 
-    public class PaymentThread extends AsyncTask<Void,Void,Void>{
+    public class PaymentThread extends AsyncTask<String, Void, String> {
 
         @Override
-        protected Void doInBackground(Void... params) {
+        protected String doInBackground(String... params) {
 
-            return mPowerPay();
+            if(params[0].equals("check")) {
+                mPowerPay();
+                oprToken = invoiceOnSite.getToken();
+                return "check";
+            }
+            else if(!params[0].equals("confirm")){
+                onsiteRequestCharge(oprToken, params[0]);
+                return "confirm";
+            }
+            return invoiceOnSite.getStatus();
         }
 
         @Override
-        protected void onPostExecute(Void aVoid) {
-            Toast.makeText(getApplicationContext(),"Done with ASYNC PROCESS",Toast.LENGTH_LONG).show();
+        protected void onPostExecute(String result) {
+            switch (result){
+                case "check":
+                    mpowerConfirmCode.setVisibility(View.VISIBLE);
+                    mpowerConfirmBtn.setVisibility(View.VISIBLE);
+                    Toast.makeText(getApplicationContext(),"Input your confirmation code from your email. ",Toast.LENGTH_LONG).show();
+                    break;
+
+                case "confirm":
+                    //You could put a function here to show an activity to thank the user
+                    if(invoiceOnSite.getStatus().equalsIgnoreCase("completed")){
+                        mpowerConfirmCode.setText("");
+                        mpowerConfirmCode.setVisibility(View.INVISIBLE);
+                        mpowerConfirmBtn.setVisibility(View.INVISIBLE);
+                        Toast.makeText(getApplicationContext(), "TRANSACTION SUCCESSFUL !!!", Toast.LENGTH_LONG).show();
+                    }
+                    else{
+                        Toast.makeText(getApplicationContext(), "something went wrong with confirmation :( ", Toast.LENGTH_LONG).show();
+                    }
+                    break;
+            }
+
+
         }
     }
 
