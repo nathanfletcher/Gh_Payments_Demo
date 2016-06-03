@@ -1,5 +1,7 @@
 package com.ketecode.ghpaymentsdemo;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -40,7 +42,8 @@ public class MpowerActivity extends AppCompatActivity {
     EditText mpowerUser;
     EditText mpowerConfirmCode;
     Button mpowerConfirmBtn;
-    FloatingActionButton fab;
+    FloatingActionButton fabOPR; //floating action button for Onsite Payment Request
+    FloatingActionButton fabCheckout; //floating action button for checkout
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,107 +57,42 @@ public class MpowerActivity extends AppCompatActivity {
         mpowerConfirmCode = (EditText) findViewById(R.id.mpower_confirm_code);
         mpowerConfirmBtn = (Button) findViewById(R.id.mpower_confirm_btn);
 
-        mPowerSetupInit();
+        //mPowerSetupInitTest();
+        mPowerSetupInitLive();
         mPowerStoreInit();
-        fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        fabOPR = (FloatingActionButton) findViewById(R.id.fabOPR);
+        fabOPR.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Snackbar.make(view, "Buying item using MPower Payments", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
 
-                new PaymentThread().execute("check");
+                new PaymentThread().execute("checkOPR");
             }
         });
 
-        mpowerConfirmBtn.setOnClickListener(new View.OnClickListener(){
+        fabCheckout = (FloatingActionButton) findViewById(R.id.fabCheckout);
+        fabCheckout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Snackbar.make(view, "Buying item using MPower Payments", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+
+                new PaymentThread().execute("checkCheckout");
+            }
+        });
+
+        mpowerConfirmBtn.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
 
-                if(!mpowerConfirmCode.getText().toString().isEmpty())
+                if (!mpowerConfirmCode.getText().toString().isEmpty())
                     new PaymentThread().execute(mpowerConfirmCode.getText().toString());
                 else
                     mpowerConfirmCode.setHint("Enter confirmation code here from your email");
             }
         });
-
-
-
-/*
-
-        productList.add(new Product(R.drawable.p1,"R.drawable.p1"));
-
-        final GridView gridView = (GridView) findViewById(R.id.activity_gridview_gv);
-
-        SwingBottomInAnimationAdapter swingBottomInAnimationAdapter = new SwingBottomInAnimationAdapter(new GridViewAdapter(this,productList));
-        swingBottomInAnimationAdapter.setAbsListView(gridView);
-
-        assert swingBottomInAnimationAdapter.getViewAnimator() != null;
-        swingBottomInAnimationAdapter.getViewAnimator().setInitialDelayMillis(INITIAL_DELAY_MILLIS);
-
-
-
-        gridView.setAdapter(swingBottomInAnimationAdapter);
-
-        //gridView.findViewById()
-        gridView.setOnItemClickListener(
-                new AdapterView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        */
-/*Article selected = new Article();
-                        selected = (Article) parent.getItemAtPosition(position);
-                        Intent i;
-                        i = new Intent(view.getContext(), ArticleDetailActivity.class);
-                        i.putExtra("title", selected.getTitlePlain());
-                        i.putExtra("date", selected.date);
-                        i.putExtra("body", selected.getContent());
-                        i.putExtra("author", selected.author);
-                        i.putExtra("url", selected.url);  imageView.getResources().getResourceName(imageResId)
-
-
-                        startActivity(i);*//*
-
-
-                        //ImageView imageView = (ImageView) parent.getItemAtPosition(position);
-                        //Object emoji =  parent.getItemAtPosition(position);
-                        //imageView.getResources().getResourceName(imageView.getId());
-
-                        Product onePic = (Product) parent.getItemAtPosition(position);
-                        //onePic.getTheImage().ge
-
-                        //Toast.makeText(getApplicationContext(), "Selected - " + getResources().getResourceName(onePic.getLocalResourceId()).replace(":", "/"), Toast.LENGTH_LONG).show();
-*/
-/*
-                        Intent share = new Intent(android.content.Intent.ACTION_SEND);
-                        share.setType("image*//*
-*/
-/**//*
-*/
-/*");
-                        share.putExtra(Intent.EXTRA_STREAM, Uri.parse()); // Add image path - android.resource://com.ketecode.imojitest/drawable/image1
-
-                        startActivity(Intent.createChooser(share, "Share image using"));*//*
-
-
-                        Intent sharingIntent = new Intent(Intent.ACTION_SEND);
-                        Uri screenshotUri = Uri.parse("android.resource://" + getResources().getResourceName(onePic.getLocalResourceId()).replace(":", "/"));
-
-                        //getResources().getResourceName(onePic.getLocalResourceId())
-
-                        sharingIntent.setType("image*/
-/*");
-                        sharingIntent.putExtra(Intent.EXTRA_STREAM, screenshotUri);
-                        startActivity(Intent.createChooser(sharingIntent, "Share image using"));
-
-
-                    }
-                }
-        );
-
-*/
-
     }
 
     private String mPowerPay() {
@@ -184,7 +122,7 @@ public class MpowerActivity extends AppCompatActivity {
 
     }
 
-    private void mPowerSetupInit(){
+    private void mPowerSetupInitTest(){
         setup.setMasterKey("de00cdf8-2859-4c3a-a1ef-640685b28d97");
         setup.setPrivateKey("test_private_sEv-gK5XOI4bVWFmwTLK1v2J_l0");
         setup.setPublicKey("test_private_sEv-gK5XOI4bVWFmwTLK1v2J_l0");
@@ -192,18 +130,26 @@ public class MpowerActivity extends AppCompatActivity {
         setup.setMode("test");
     }
 
+    private void mPowerSetupInitLive(){
+        setup.setMasterKey("de00cdf8-2859-4c3a-a1ef-640685b28d97");
+        setup.setPrivateKey("live_private_RQFQGtWoix5nG5Gui-HrYh2om74");
+        setup.setPublicKey("live_public_n7IYHyKYA6GYVJL7BBASajhRXws");
+        setup.setToken("f53430f7b7aafb67320e");
+        setup.setMode("live");
+    }
+
     private void mPowerStoreInit(){
         store.setName("Gh Payments Demo Store");
-        store.setTagline("This is an awesome Java store setup.");
+        store.setTagline("This is an awesome Java store to buy me waache.");
         store.setPhoneNumber("0209708141");
         store.setPostalAddress("606 Memorylane Chokor no.1 Road.");
         store.setWebsiteUrl("http://ketecode.com/");
     }
 
-    private void mPowerCheckoutInvoice(){
+    private void mPowerInvoiceCheckout(){
         invoiceCheckout.addItem("13' Apple Retina 500 HDD", 1, 10.99, 10.99);
         invoiceCheckout.addItem("Case Logic laptop Bag", 2, 100.50, 201, "Optional description");
-        invoiceCheckout.setTotalAmount(555.23);
+        invoiceCheckout.setTotalAmount(2.50);
 
         //CREATING INVOICE
         // The code below depicts how to create the checkout invoice on our servers
@@ -221,7 +167,7 @@ public class MpowerActivity extends AppCompatActivity {
     private String mPowerOnSiteInvoice(String mpower_customer_username_or_phoneNo){
         invoiceOnSite.addItem("13' Apple Retina 500 HDD", 1, 10.99, 10.99);
         invoiceOnSite.addItem("Case Logic laptop Bag", 2, 100.50, 201, "Optional description");
-        invoiceOnSite.setTotalAmount(200.56);
+        invoiceOnSite.setTotalAmount(3.56);
 
         //CREATING INVOICE
         // Onsite Payment Request requires the mpower customer account alias as the parameter
@@ -380,6 +326,25 @@ public class MpowerActivity extends AppCompatActivity {
 
         @Override
         protected String doInBackground(String... params) {
+            switch (params[0]){
+                case "checkOPR":
+                    mPowerPay();
+                    oprToken = invoiceOnSite.getToken();
+                    return "checkOPR";
+
+                case "checkCheckout":
+                    //Adding all the items to the cart and opening the mpower site to checkout
+                    mPowerInvoiceCheckout();
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(invoiceCheckout.getInvoiceUrl()));
+                    startActivity(browserIntent);
+                    return "checkCheckout";
+
+                case "confirm":
+                    onsiteRequestCharge(oprToken, params[0]);
+                    return "confirm";
+
+
+            }
 
             if(params[0].equals("check")) {
                 mPowerPay();
@@ -396,7 +361,7 @@ public class MpowerActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String result) {
             switch (result){
-                case "check":
+                case "checkOPR":
                     mpowerConfirmCode.setVisibility(View.VISIBLE);
                     mpowerConfirmBtn.setVisibility(View.VISIBLE);
                     Toast.makeText(getApplicationContext(),"Input your confirmation code from your email. ",Toast.LENGTH_LONG).show();

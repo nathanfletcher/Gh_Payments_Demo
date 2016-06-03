@@ -23,6 +23,10 @@
         <activity
             android:name=".MpowerActivity"
             android:label="@string/title_activity_mpower"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".SlydepayActivity"
+            android:label="@string/title_activity_slydepay"
             android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
