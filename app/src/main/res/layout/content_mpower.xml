@@ -11,7 +11,8 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.ketecode.ghpaymentsdemo.MpowerActivity"
     tools:showIn="@layout/activity_mpower"
-    android:background="@drawable/waache">
+    android:background="@drawable/waache"
+    android:id="@+id/mpowerContext">
 
 
 

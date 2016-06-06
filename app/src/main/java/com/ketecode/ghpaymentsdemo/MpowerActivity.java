@@ -1,17 +1,26 @@
 package com.ketecode.ghpaymentsdemo;
 
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.PopupWindow;
 import android.widget.Toast;
 
 import com.mpowerpayments.mpower.MPowerCheckoutInvoice;
@@ -21,6 +30,7 @@ import com.mpowerpayments.mpower.MPowerSetup;
 
 import java.util.ArrayList;
 import java.util.List;
+
 
 
 public class MpowerActivity extends AppCompatActivity {
@@ -39,11 +49,16 @@ public class MpowerActivity extends AppCompatActivity {
     //This invoice will not take you to the MPower website but bill the customer on the app or site.
     MPowerOnsiteInvoice invoiceOnSite = new MPowerOnsiteInvoice (setup, store);
 
+    //Integrating MPower store
+    MPower payments = new MPower();
+
     EditText mpowerUser;
     EditText mpowerConfirmCode;
     Button mpowerConfirmBtn;
     FloatingActionButton fabOPR; //floating action button for Onsite Payment Request
     FloatingActionButton fabCheckout; //floating action button for checkout
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,17 +72,22 @@ public class MpowerActivity extends AppCompatActivity {
         mpowerConfirmCode = (EditText) findViewById(R.id.mpower_confirm_code);
         mpowerConfirmBtn = (Button) findViewById(R.id.mpower_confirm_btn);
 
-        //mPowerSetupInitTest();
-        mPowerSetupInitLive();
+
+        mPowerSetupInitTest();
+        //mPowerSetupInitLive();
         mPowerStoreInit();
         fabOPR = (FloatingActionButton) findViewById(R.id.fabOPR);
         fabOPR.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Buying item using MPower Payments", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                if(!showSettingsAlert()){
+                }
+                else {
+                    Snackbar.make(view, "In App purchace using MPower Payments", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
 
-                new PaymentThread().execute("checkOPR");
+                    new PaymentThread().execute("checkOPR");
+                }
             }
         });
 
@@ -75,10 +95,14 @@ public class MpowerActivity extends AppCompatActivity {
         fabCheckout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Buying item using MPower Payments", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                if(!showSettingsAlert()){
+                }
+                else {
+                    Snackbar.make(view, "Buying item on MPower Payments site", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
 
-                new PaymentThread().execute("checkCheckout");
+                    new PaymentThread().execute("checkCheckout");
+                }
             }
         });
 
@@ -93,6 +117,15 @@ public class MpowerActivity extends AppCompatActivity {
                     mpowerConfirmCode.setHint("Enter confirmation code here from your email");
             }
         });
+/*
+
+        if(!isConnected){
+            showSettingsAlert();
+        }
+*/
+
+
+
     }
 
     private String mPowerPay() {
@@ -128,6 +161,7 @@ public class MpowerActivity extends AppCompatActivity {
         setup.setPublicKey("test_private_sEv-gK5XOI4bVWFmwTLK1v2J_l0");
         setup.setToken("79616e81edd48fcdb778");
         setup.setMode("test");
+
     }
 
     private void mPowerSetupInitLive(){
@@ -150,6 +184,11 @@ public class MpowerActivity extends AppCompatActivity {
         invoiceCheckout.addItem("13' Apple Retina 500 HDD", 1, 10.99, 10.99);
         invoiceCheckout.addItem("Case Logic laptop Bag", 2, 100.50, 201, "Optional description");
         invoiceCheckout.setTotalAmount(2.50);
+        //invoiceCheckout.setTotalAmount(invoiceCheckout.getTotalAmount());
+
+        //Log.d("All Items",invoiceCheckout.getItems());
+        //Log.d("Get toal Amt", String.valueOf(invoiceCheckout.getTotalAmount()));
+
 
         //CREATING INVOICE
         // The code below depicts how to create the checkout invoice on our servers
@@ -199,7 +238,7 @@ public class MpowerActivity extends AppCompatActivity {
 
 
     private void mPowerCheckoutOnSiteInvoice(){
-        invoiceOnSite.addItem("13' Apple Retina 500 HDD",1,10.99,10.99);
+        invoiceOnSite.addItem("13' Apple Retina 500 HDD", 1, 10.99, 10.99);
         invoiceOnSite.addItem("Case Logic laptop Bag", 2, 100.50, 201, "Optional description");
         invoiceOnSite.setTotalAmount(555.23);
 
@@ -321,6 +360,79 @@ public class MpowerActivity extends AppCompatActivity {
         return false;
     }
 
+    public void openPaymentBrowserActivity(){
+        Intent browserActivity = new Intent(MpowerActivity.this,MPowerWebsiteActivity.class);
+        browserActivity.putExtra("URL", invoiceCheckout.getInvoiceUrl());
+        startActivityForResult(browserActivity, 1);
+    }
+
+    public void showBrowserPopup(){
+        LayoutInflater inflater = (LayoutInflater)
+                this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        PopupWindow pw = new PopupWindow(
+                inflater.inflate(R.layout.activity_mpower_website, null, false),
+                10000,
+                10000,
+                true);
+        // The code below assumes that the root container has an id called 'main'
+        pw.showAtLocation(this.findViewById(R.id.mpowerContext), Gravity.CENTER, 0, 0);
+    }
+
+    /**
+     * Function to show settings alert dialog
+     * */
+    public boolean showSettingsAlert() {
+        //Internet connectivity
+        //To check the Internet connection
+        ConnectivityManager cm;
+        NetworkInfo activeNetwork;
+        boolean isConnected;
+
+        cm = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+        activeNetwork = cm.getActiveNetworkInfo();
+        isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+
+
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+
+        // Setting Dialog Title
+        alertDialog.setTitle("Internet settings");
+
+        // Setting Dialog Message
+        alertDialog.setMessage("Internet is not enabled. Do you want to go to settings menu?");
+
+        // Setting Icon to Dialog
+        //alertDialog.setIcon(R.drawable.delete);
+
+        // On pressing Settings button
+        alertDialog.setPositiveButton("Settings", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                Intent intent = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
+                startActivity(intent);
+            }
+        });
+
+        // on pressing cancel button
+        alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+
+        isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+
+        if(!isConnected){
+            // Showing Alert Message
+            alertDialog.show();
+        }
+
+        return isConnected;
+
+    }
+
+
+
 
     public class PaymentThread extends AsyncTask<String, Void, String> {
 
@@ -328,32 +440,24 @@ public class MpowerActivity extends AppCompatActivity {
         protected String doInBackground(String... params) {
             switch (params[0]){
                 case "checkOPR":
-                    mPowerPay();
-                    oprToken = invoiceOnSite.getToken();
-                    return "checkOPR";
+                        mPowerPay();
+                        oprToken = invoiceOnSite.getToken();
+
+                        //showSettingsAlert();
+                        return "checkOPR";
+
 
                 case "checkCheckout":
-                    //Adding all the items to the cart and opening the mpower site to checkout
-                    mPowerInvoiceCheckout();
-                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(invoiceCheckout.getInvoiceUrl()));
-                    startActivity(browserIntent);
-                    return "checkCheckout";
+                        //Adding all the items to the cart and opening the mpower site to checkout
+                        mPowerInvoiceCheckout();
+                        //This opens the Mpower site in an activity successfully
+                        openPaymentBrowserActivity();
+                        return "checkCheckout";
+
 
                 case "confirm":
                     onsiteRequestCharge(oprToken, params[0]);
                     return "confirm";
-
-
-            }
-
-            if(params[0].equals("check")) {
-                mPowerPay();
-                oprToken = invoiceOnSite.getToken();
-                return "check";
-            }
-            else if(!params[0].equals("confirm")){
-                onsiteRequestCharge(oprToken, params[0]);
-                return "confirm";
             }
             return invoiceOnSite.getStatus();
         }
@@ -378,6 +482,10 @@ public class MpowerActivity extends AppCompatActivity {
                     else{
                         Toast.makeText(getApplicationContext(), "something went wrong with confirmation :( ", Toast.LENGTH_LONG).show();
                     }
+                    break;
+                case "error":
+                    //showSettingsAlert(getBaseContext());
+                    Toast.makeText(getApplicationContext(), "something went wrong with the app :( ", Toast.LENGTH_LONG).show();
                     break;
             }
 

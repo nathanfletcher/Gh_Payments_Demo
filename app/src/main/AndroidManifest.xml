@@ -3,6 +3,8 @@
     package="com.ketecode.ghpaymentsdemo">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
 
     <application
         android:allowBackup="true"
@@ -27,7 +29,8 @@
         <activity
             android:name=".SlydepayActivity"
             android:label="@string/title_activity_slydepay"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".MPowerWebsiteActivity"></activity>
     </application>
 
 </manifest>
