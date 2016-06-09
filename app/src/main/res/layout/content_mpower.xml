@@ -31,7 +31,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Buy Waakye for Kobby"
+        android:text="Send Nathan money for Surfline"
         android:id="@+id/textView4"
         android:background="#413e3e"
         android:gravity="center"
@@ -50,13 +50,13 @@
         android:layout_below="@+id/textView5"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:autoText="true" />
+        android:autoText="true"/>
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="GHS 5"
+        android:text="Thanks"
         android:id="@+id/textView5"
         android:background="#db000000"
         android:textColor="#faffffff"

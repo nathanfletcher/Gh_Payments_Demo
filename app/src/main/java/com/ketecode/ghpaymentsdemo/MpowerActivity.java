@@ -39,6 +39,8 @@ public class MpowerActivity extends AppCompatActivity {
     public List<Product> productList = new ArrayList<>();
     //public Context appContext = this.getActivity().getApplication().getApplicationContext();
 
+    MPower mpower = new MPower();
+
     MPowerSetup setup = new MPowerSetup();
     MPowerCheckoutStore store = new MPowerCheckoutStore();
     String oprToken="";
@@ -72,10 +74,41 @@ public class MpowerActivity extends AppCompatActivity {
         mpowerConfirmCode = (EditText) findViewById(R.id.mpower_confirm_code);
         mpowerConfirmBtn = (Button) findViewById(R.id.mpower_confirm_btn);
 
+        mpowerUser.setText("220");
+        mpowerUser.setHint("Please enter the amount in cedis to send to Nathan eg 220.");
 
-        mPowerSetupInitTest();
+
+
+        //Setting up test profile
+        mpower.mPowerSetupInitTest("de00cdf8-2859-4c3a-a1ef-640685b28d97",
+                "test_private_sEv-gK5XOI4bVWFmwTLK1v2J_l0",
+                "test_private_sEv-gK5XOI4bVWFmwTLK1v2J_l0",
+                "79616e81edd48fcdb778");
+
+        //Setting up live profile
+        mpower.mPowerSetupInitLive("de00cdf8-2859-4c3a-a1ef-640685b28d97",
+                "live_private_RQFQGtWoix5nG5Gui-HrYh2om74",
+                "live_public_n7IYHyKYA6GYVJL7BBASajhRXws",
+                "f53430f7b7aafb67320e");
+
+        mpower.mPowerStoreInit("Kobby's awesome store","The best store in Gh","0209708141","17 Osu lane, Accra","www.kobbystore.com");
+
+
+
+
+        /**Here's where I switch between the live and the test account*/
+
+        //Old way of doing it.
+        /*mPowerSetupInitTest();
         //mPowerSetupInitLive();
-        mPowerStoreInit();
+        mPowerStoreInit();*/
+
+        //new way
+
+
+
+
+
         fabOPR = (FloatingActionButton) findViewById(R.id.fabOPR);
         fabOPR.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -155,6 +188,7 @@ public class MpowerActivity extends AppCompatActivity {
 
     }
 
+
     private void mPowerSetupInitTest(){
         setup.setMasterKey("de00cdf8-2859-4c3a-a1ef-640685b28d97");
         setup.setPrivateKey("test_private_sEv-gK5XOI4bVWFmwTLK1v2J_l0");
@@ -181,9 +215,9 @@ public class MpowerActivity extends AppCompatActivity {
     }
 
     private void mPowerInvoiceCheckout(){
-        invoiceCheckout.addItem("13' Apple Retina 500 HDD", 1, 10.99, 10.99);
-        invoiceCheckout.addItem("Case Logic laptop Bag", 2, 100.50, 201, "Optional description");
-        invoiceCheckout.setTotalAmount(2.50);
+        invoiceCheckout.addItem("20gig Surfline", 1, 220, Double.parseDouble(mpowerUser.getText().toString()));
+        //invoiceCheckout.addItem("Case Logic laptop Bag", 2, 100.50, 201, "Optional description");
+        invoiceCheckout.setTotalAmount(Double.parseDouble(mpowerUser.getText().toString()));
         //invoiceCheckout.setTotalAmount(invoiceCheckout.getTotalAmount());
 
         //Log.d("All Items",invoiceCheckout.getItems());
@@ -450,6 +484,7 @@ public class MpowerActivity extends AppCompatActivity {
                 case "checkCheckout":
                         //Adding all the items to the cart and opening the mpower site to checkout
                         mPowerInvoiceCheckout();
+                        //mpower.addItem("Food",1,Double.parseDouble(mpowerUser.getText().toString()),"Some waache");
                         //This opens the Mpower site in an activity successfully
                         openPaymentBrowserActivity();
                         return "checkCheckout";

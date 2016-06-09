@@ -1,6 +1,9 @@
 package com.ketecode.ghpaymentsdemo;
 
+import android.os.AsyncTask;
 import android.util.Log;
+import android.view.View;
+import android.widget.Toast;
 
 import com.mpowerpayments.mpower.MPowerCheckoutInvoice;
 import com.mpowerpayments.mpower.MPowerCheckoutStore;
@@ -12,7 +15,7 @@ import java.util.List;
 /**
  * Created by KobbyFletcher on 6/6/16.
  */
-public class MPower {
+public class MPower /*extends AsyncTask<String, Void, String>*/ {
 
     MPowerSetup setup = new MPowerSetup();
     MPowerCheckoutStore store = new MPowerCheckoutStore();
@@ -38,6 +41,7 @@ public class MPower {
         setup.setPublicKey(livePublicKey);
         setup.setToken(liveToken);
         setup.setMode("live");
+
     }
 
     public void mPowerStoreInit(String storeName, String storeMotto, String storePhoneNumber, String storePostalAddress, String storeWebsiteUrl){
@@ -46,6 +50,7 @@ public class MPower {
         store.setPhoneNumber(storePhoneNumber);
         store.setPostalAddress(storePostalAddress);
         store.setWebsiteUrl(storeWebsiteUrl);
+
     }
 
     //This method is to MPower's lack of calculations when adding anything to their cart and returns the total of the items in the cart
@@ -54,6 +59,7 @@ public class MPower {
         invoiceCheckout.addItem(itemName, itemQuantity, itemUnitPrice, totalAmount, itemDescription);
         invoiceCheckout.setTotalAmount(totalAmount);
 
+
         //CREATING INVOICE
         // The code below depicts how to create the checkout invoice on our servers
         // and redirect to the checkout page.
@@ -61,6 +67,8 @@ public class MPower {
             Log.d("Invoice Status ", invoiceCheckout.getStatus());
             Log.d("Invoice Response ",invoiceCheckout.getResponseText());
             Log.d("Invoice URL", invoiceCheckout.getInvoiceUrl());
+            Log.d("Return URL", invoiceCheckout.getReturnUrl());
+
         } else {
             Log.d("Invoice Response ", invoiceCheckout.getResponseText());
             Log.d("Invoice Status ", invoiceCheckout.getStatus());
@@ -107,10 +115,62 @@ public class MPower {
 
         }else{
             Log.d("Status",invoiceCheckout.getStatus());
-            Log.d("Response Text",invoiceCheckout.getResponseText());
-            Log.d("Response Code",invoiceCheckout.getResponseCode());
+            Log.d("Response Text", invoiceCheckout.getResponseText());
+            Log.d("Response Code", invoiceCheckout.getResponseCode());
+
         }
         return false;
     }
+
+    /*@Override
+    protected String doInBackground(String... params) {
+        switch (params[0]){
+            case "checkOPR":
+                mPowerPay();
+                oprToken = invoiceOnSite.getToken();
+
+                //showSettingsAlert();
+                return "checkOPR";
+
+
+            case "checkCheckout":
+                //Adding all the items to the cart and opening the mpower site to checkout
+                mPowerInvoiceCheckout();
+                //This opens the Mpower site in an activity successfully
+                openPaymentBrowserActivity();
+                return "checkCheckout";
+
+
+            case "confirm":
+                onsiteRequestCharge(oprToken, params[0]);
+                return "confirm";
+        }
+        return invoiceOnSite.getStatus();
+    }
+
+    @Override
+    protected void onPostExecute(String result) {
+        switch (result){
+
+            case "confirm":
+                //You could put a function here to show an activity to thank the user
+                if(invoiceOnSite.getStatus().equalsIgnoreCase("completed")){
+                    mpowerConfirmCode.setText("");
+                    mpowerConfirmCode.setVisibility(View.INVISIBLE);
+                    mpowerConfirmBtn.setVisibility(View.INVISIBLE);
+                    Toast.makeText(getApplicationContext(), "TRANSACTION SUCCESSFUL !!!", Toast.LENGTH_LONG).show();
+                }
+                else{
+                    Toast.makeText(getApplicationContext(), "something went wrong with confirmation :( ", Toast.LENGTH_LONG).show();
+                }
+                break;
+            case "error":
+                //showSettingsAlert(getBaseContext());
+                Toast.makeText(getApplicationContext(), "something went wrong with the app :( ", Toast.LENGTH_LONG).show();
+                break;
+        }
+
+
+    }*/
 
 }

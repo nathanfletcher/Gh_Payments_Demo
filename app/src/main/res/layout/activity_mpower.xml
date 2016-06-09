@@ -29,7 +29,8 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|right"
         android:layout_margin="@dimen/fab_margin"
-        android:src="@android:drawable/ic_media_next" />
+        android:src="@android:drawable/ic_media_previous"
+        android:visibility="invisible"/>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fabCheckout"
@@ -37,6 +38,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|left"
         android:layout_margin="@dimen/fab_margin"
-        android:src="@android:drawable/ic_media_previous" />
+        android:src="@android:drawable/ic_menu_send"/>
 
 </android.support.design.widget.CoordinatorLayout>
