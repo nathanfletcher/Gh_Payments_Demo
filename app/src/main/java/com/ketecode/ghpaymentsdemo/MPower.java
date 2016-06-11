@@ -9,13 +9,20 @@ import com.mpowerpayments.mpower.MPowerCheckoutInvoice;
 import com.mpowerpayments.mpower.MPowerCheckoutStore;
 import com.mpowerpayments.mpower.MPowerSetup;
 
+import org.json.simple.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by KobbyFletcher on 6/6/16.
+ * This class attempts to demonsrate a simple implementation of the MPower API
+ * to be used in an android application.
+ * You'd notice that the original implementation is in the MpowerActivity class.
+ * I'm moving them here in order to keep that class small. In the end, this would be the
+ * payments "engine" class of the app.
  */
-public class MPower /*extends AsyncTask<String, Void, String>*/ {
+public class MPower extends MPowerCheckoutInvoice /*extends AsyncTask<String, Void, String>*/ {
 
     MPowerSetup setup = new MPowerSetup();
     MPowerCheckoutStore store = new MPowerCheckoutStore();
@@ -25,8 +32,18 @@ public class MPower /*extends AsyncTask<String, Void, String>*/ {
     private double totalAmount;
     double cartTotal;
 
-    public MPower(){}
+    public MPower(MPowerSetup mPowerSetup, MPowerCheckoutStore mPowerCheckoutStore) {
+        super(mPowerSetup, mPowerCheckoutStore);
+    }
 
+
+
+
+    /**Method to initialize the test profile MPower would give you.
+     * The parameters are provided when you sign up for the integrations setup after getting
+     * an MPower account. During test, you would only be presented with the option to pay with an MPower account.
+     * Other payment methods such as Mobile Money and VISA are not shown in this mode.
+     * They are shown when you use the mPowerSetupInitLive() method. They don't tell you that in their documentation :/*/
     public void mPowerSetupInitTest(String testMasterKey, String testPrivateKey, String testPublicKey, String testToken){
         setup.setMasterKey(testMasterKey);
         setup.setPrivateKey(testPrivateKey);
@@ -34,7 +51,9 @@ public class MPower /*extends AsyncTask<String, Void, String>*/ {
         setup.setToken(testToken);
         setup.setMode("test");
     }
-
+    /**Method to initialize the live profile MPower would give you.
+     * The parameters are provided when you sign up for the integrations setup after getting
+     * an MPower account. Switching to this method would show other payment methods such as VISA and mobile money.*/
     public void mPowerSetupInitLive(String liveMasterKey, String livePrivateKey, String livePublicKey, String liveToken){
         setup.setMasterKey(liveMasterKey);
         setup.setPrivateKey(livePrivateKey);
@@ -43,7 +62,8 @@ public class MPower /*extends AsyncTask<String, Void, String>*/ {
         setup.setMode("live");
 
     }
-
+/**This method defines your store. Make sure the details you put in here are accurate before you go live i.e switch to the
+     mPowerSetupInitLive() method */
     public void mPowerStoreInit(String storeName, String storeMotto, String storePhoneNumber, String storePostalAddress, String storeWebsiteUrl){
         store.setName(storeName);
         store.setTagline(storeMotto);
@@ -54,10 +74,12 @@ public class MPower /*extends AsyncTask<String, Void, String>*/ {
     }
 
     //This method is to MPower's lack of calculations when adding anything to their cart and returns the total of the items in the cart
-    public void addItem(String itemName, int itemQuantity, double itemUnitPrice, String itemDescription){
+    public void addItem_test(String itemName, int itemQuantity, double itemUnitPrice, String itemDescription){
         totalAmount += (itemQuantity * itemUnitPrice);
         invoiceCheckout.addItem(itemName, itemQuantity, itemUnitPrice, totalAmount, itemDescription);
         invoiceCheckout.setTotalAmount(totalAmount);
+
+        JSONObject jsonObject = new JSONObject();
 
 
         //CREATING INVOICE
@@ -74,6 +96,21 @@ public class MPower /*extends AsyncTask<String, Void, String>*/ {
             Log.d("Invoice Status ", invoiceCheckout.getStatus());
         }
     }
+
+    /**
+     * This method acts like a buffer for a shopping cart. Not to be confused with MPower API's addItem,
+     * this creates it's own item object (whose definition is in an Item inner class below) and
+     * puts in the details of the item in a list. I'm doing this because I want to implement a removeItem() method
+     * that can remove an item from the cart. MPower does not have that yet. After adding and removing to the Items list,
+     * the method mpowerCheckout() would go through the list and prgramatically add all the items to MPower's official
+     * addItem() method. That will take over and set the checkout url which can be opened in a browser*/
+
+    public boolean addItem(String itemName, String itemId, int itemQuantity, double itemUnitPrice, String itemDescription){
+
+        return true;
+    }
+
+
 
     /**
      * This funciton would confirm the Checkout programatically.

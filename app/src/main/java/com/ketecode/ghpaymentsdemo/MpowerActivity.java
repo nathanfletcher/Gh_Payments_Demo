@@ -39,7 +39,7 @@ public class MpowerActivity extends AppCompatActivity {
     public List<Product> productList = new ArrayList<>();
     //public Context appContext = this.getActivity().getApplication().getApplicationContext();
 
-    MPower mpower = new MPower();
+    //MPower mpower = new MPower();
 
     MPowerSetup setup = new MPowerSetup();
     MPowerCheckoutStore store = new MPowerCheckoutStore();
@@ -52,7 +52,7 @@ public class MpowerActivity extends AppCompatActivity {
     MPowerOnsiteInvoice invoiceOnSite = new MPowerOnsiteInvoice (setup, store);
 
     //Integrating MPower store
-    MPower payments = new MPower();
+    //MPower payments = new MPower();
 
     EditText mpowerUser;
     EditText mpowerConfirmCode;
@@ -74,10 +74,11 @@ public class MpowerActivity extends AppCompatActivity {
         mpowerConfirmCode = (EditText) findViewById(R.id.mpower_confirm_code);
         mpowerConfirmBtn = (Button) findViewById(R.id.mpower_confirm_btn);
 
-        mpowerUser.setText("220");
+        mpowerUser.setText("5");
         mpowerUser.setHint("Please enter the amount in cedis to send to Nathan eg 220.");
 
 
+/*
 
         //Setting up test profile
         mpower.mPowerSetupInitTest("de00cdf8-2859-4c3a-a1ef-640685b28d97",
@@ -93,15 +94,16 @@ public class MpowerActivity extends AppCompatActivity {
 
         mpower.mPowerStoreInit("Kobby's awesome store","The best store in Gh","0209708141","17 Osu lane, Accra","www.kobbystore.com");
 
+*/
 
 
 
         /**Here's where I switch between the live and the test account*/
 
         //Old way of doing it.
-        /*mPowerSetupInitTest();
+        //mPowerSetupInitTest();
         //mPowerSetupInitLive();
-        mPowerStoreInit();*/
+        //mPowerStoreInit();
 
         //new way
 
@@ -196,6 +198,7 @@ public class MpowerActivity extends AppCompatActivity {
         setup.setToken("79616e81edd48fcdb778");
         setup.setMode("test");
 
+
     }
 
     private void mPowerSetupInitLive(){
@@ -212,6 +215,7 @@ public class MpowerActivity extends AppCompatActivity {
         store.setPhoneNumber("0209708141");
         store.setPostalAddress("606 Memorylane Chokor no.1 Road.");
         store.setWebsiteUrl("http://ketecode.com/");
+        store.setLogoUrl("http://ghk.h-cdn.co/assets/16/09/980x490/landscape-1457107485-gettyimages-512366437.jpg");
     }
 
     private void mPowerInvoiceCheckout(){
